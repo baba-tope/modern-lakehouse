@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: airflow-pvc
+  namespace: texas-gas-lakehouse
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airflow-config
+  namespace: texas-gas-lakehouse
+data:
+  AIRFLOW__CORE__EXECUTOR: LocalExecutor
+  AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+  AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+  AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+  AIRFLOW__LOGGING__BASE_LOG_FOLDER: /opt/airflow/logs
+  AIRFLOW_HOME: /opt/airflow
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: airflow-webserver
+  namespace: texas-gas-lakehouse
+spec:
+  serviceName: airflow-webserver
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow-webserver
+  template:
+    metadata:
+      labels:
+        app: airflow-webserver
+    spec:
+      initContainers:
+      - name: airflow-init
+        image: apache/airflow:2.7.3-python3.10
+        command:
+          - bash
+          - -c
+          - |
+            airflow db init
+            airflow users create \
+              --username "${AIRFLOW_USERNAME}" \
+              --password "${AIRFLOW_PASSWORD}" \
+              --firstname "${AIRFLOW_FIRSTNAME}" \
+              --lastname "${AIRFLOW_LASTNAME}" \
+              --role Admin \
+              --email "${AIRFLOW_EMAIL}" || true
+        envFrom:
+        - configMapRef:
+            name: airflow-config
+        - secretRef:
+            name: airflow-secret
+        volumeMounts:
+        - name: airflow-storage
+          mountPath: /opt/airflow
+      containers:
+      - name: airflow-webserver
+        image: apache/airflow:2.7.3-python3.10
+        command: ["airflow"]
+        args: ["webserver"]
+        ports:
+        - containerPort: 8080
+          name: http
+        envFrom:
+        - configMapRef:
+            name: airflow-config
+        - secretRef:
+            name: airflow-secret
+        volumeMounts:
+        - name: airflow-storage
+          mountPath: /opt/airflow
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+      - name: airflow-scheduler
+        image: apache/airflow:2.7.3-python3.10
+        command: ["airflow"]
+        args: ["scheduler"]
+        envFrom:
+        - configMapRef:
+            name: airflow-config
+        - secretRef:
+            name: airflow-secret
+        volumeMounts:
+        - name: airflow-storage
+          mountPath: /opt/airflow
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+      volumes:
+      - name: airflow-storage
+        persistentVolumeClaim:
+          claimName: airflow-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-webserver
+  namespace: texas-gas-lakehouse
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 172.18.0.206
+spec:
+  type: LoadBalancer
+  selector:
+    app: airflow-webserver
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30006
+    name: http

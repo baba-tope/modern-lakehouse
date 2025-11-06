@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Cagridge Data Lakehouse - Texas Gas Stations</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body class="bg-background text-foreground p-6 min-h-screen">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <header class="card p-6 mb-6">
+                <div class="flex justify-between items-center flex-wrap gap-4">
+                    <div>
+                        <h1 class="text-4xl font-bold mb-2">
+                            <i class="fas fa-database mr-3 text-blue-500"></i>Cagridge Data Lakehouse
+                        </h1>
+                        <p class="text-muted-foreground text-lg">Texas Gas Stations Analytics Platform</p>
+                    </div>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <button onclick="toggleTheme()" class="theme-toggle p-3 rounded-lg" title="Toggle theme">
+                            <i class="fas fa-moon dark:hidden text-xl text-muted-foreground"></i>
+                            <i class="fas fa-sun hidden dark:inline text-xl text-yellow-400"></i>
+                        </button>
+                        <span class="location-badge px-4 py-2 rounded-full font-semibold text-sm">
+                            <i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>Houston
+                        </span>
+                        <span class="location-badge px-4 py-2 rounded-full font-semibold text-sm">
+                            <i class="fas fa-map-marker-alt mr-2 text-green-500"></i>Dallas
+                        </span>
+                        <span class="location-badge px-4 py-2 rounded-full font-semibold text-sm">
+                            <i class="fas fa-map-marker-alt mr-2 text-purple-500"></i>Austin
+                        </span>
+                        <span class="location-badge px-4 py-2 rounded-full font-semibold text-sm">
+                            <i class="fas fa-map-marker-alt mr-2 text-orange-500"></i>San Antonio
+                        </span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Metrics Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <i class="fas fa-gas-pump text-blue-500 text-3xl"></i>
+                        <span class="status-indicator status-online"></span>
+                    </div>
+                    <h3 class="text-muted-foreground text-sm mb-1">Active Stations</h3>
+                    <p class="text-foreground text-3xl font-bold">4</p>
+                </div>
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <i class="fas fa-server text-green-500 text-3xl"></i>
+                        <span class="status-indicator status-online"></span>
+                    </div>
+                    <h3 class="text-muted-foreground text-sm mb-1">Services Running</h3>
+                    <p class="text-foreground text-3xl font-bold" id="serviceCount">0/9</p>
+                </div>
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <i class="fas fa-database text-purple-500 text-3xl"></i>
+                        <span class="status-indicator status-online"></span>
+                    </div>
+                    <h3 class="text-muted-foreground text-sm mb-1">Data Stored</h3>
+                    <p class="text-foreground text-3xl font-bold">890 GB</p>
+                </div>
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <i class="fas fa-chart-line text-orange-500 text-3xl"></i>
+                        <span class="status-indicator status-online"></span>
+                    </div>
+                    <h3 class="text-muted-foreground text-sm mb-1">System Health</h3>
+                    <p class="text-foreground text-3xl font-bold">98%</p>
+                </div>
+            </div>
+
+            <!-- Services Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dashboard Service -->
+                <div class="card p-6" data-service="dashboard">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="service-icon">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <span class="status-indicator status-loading"></span>
+                    </div>
+                    <h3 class="text-foreground text-xl font-bold mb-2">Dashboard</h3>
+                    <p class="text-muted-foreground text-sm mb-4">Main Control Panel</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-muted-foreground text-xs">Port: 30000</span>
+                        <span class="text-muted-foreground text-xs service-status">Checking...</span>
+                    </div>
+                    <button onclick="openService('http://localhost:30000')" class="btn-primary w-full py-3 rounded-lg font-semibold">
+                        <i class="fas fa-external-link-alt mr-2"></i>Open Dashboard
+                    </button>
+                </div>
+
+                <!-- PostgreSQL -->
+                <div class="card p-6" data-service="postgres">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="service-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <span class="status-indicator status-loading"></span>
+                    </div>
+                    <h3 class="text-foreground text-xl font-bold mb-2">PostgreSQL</h3>
+                    <p class="text-muted-foreground text-sm mb-4">Relational Database</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-muted-foreground text-xs">Port: 30001</span>
+                        <span class="text-muted-foreground text-xs service-status">Checking...</span>
+                    </div>
+                    <button onclick="checkPostgres()" class="btn-primary w-full py-3 rounded-lg font-semibold">
+                        <i class="fas fa-heartbeat mr-2"></i>Check Status
+                    </button>
+                </div>
+
+                <!-- MinIO -->
+                <div class="card p-6" data-service="minio">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="service-icon">
+                            <i class="fas fa-hdd"></i>
+                        </div>
+                        <span class="status-indicator status-loading"></span>
+                    </div>
+                    <h3 class="text-foreground text-xl font-bold mb-2">MinIO</h3>
+                    <p class="text-muted-foreground text-sm mb-4">Object Storage (S3)</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-muted-foreground text-xs">Port: 30002 / 30009</span>
+                        <span class="text-muted-foreground text-xs service-status">Checking...</span>
+                    </div>
+                    <button onclick="openService('http://localhost:30009')" class="btn-primary w-full py-3 rounded-lg font-semibold">
+                        <i class="fas fa-external-link-alt mr-2"></i>Open Console
+                    </button>
+                </div>
+
+                <!-- Nessie -->
+                <div class="card p-6" data-service="nessie">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="service-icon">
+                            <i class="fas fa-code-branch"></i>
+                        </div>
+                        <span class="status-indicator status-loading"></span>
+                    </div>
+                    <h3 class="text-foreground text-xl font-bold mb-2">Project Nessie</h3>
+                    <p class="text-muted-foreground text-sm mb-4">Data Catalog</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-muted-foreground text-xs">Port: 30003</span>
+                        <span class="text-muted-foreground text-xs service-status">Checking...</span>
+                    </div>
+                    <button onclick="openService('http://localhost:30003')" class="btn-primary w-full py-3 rounded-lg font-semibold">
+                        <i class="fas fa-external-link-alt mr-2"></i>Open Nessie
+                    </button>
+                </div>
+
+                <!-- Trino -->
+                <div class="card p-6" data-service="trino">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="service-icon">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <span class="status-indicator status-loading"></span>
+                    </div>
+                    <h3 class="text-foreground text-xl font-bold mb-2">Trino</h3>
+                    <p class="text-muted-foreground text-sm mb-4">Query Engine (Iceberg)</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-muted-foreground text-xs">Port: 30004</span>
+                        <span class="text-muted-foreground text-xs service-status">Checking...</span>
+                    </div>
+                    <button onclick="openService('http://localhost:30004')" class="btn-primary w-full py-3 rounded-lg font-semibold">
+                        <i class="fas fa-external-link-alt mr-2"></i>Open Trino
+                    </button>
+                </div>
+
+                <!-- dbt -->
+                <div class="card p-6" data-service="dbt">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="service-icon">
+                            <i class="fas fa-project-diagram"></i>
+                        </div>
+                        <span class="status-indicator status-loading"></span>
+                    </div>
+                    <h3 class="text-foreground text-xl font-bold mb-2">dbt</h3>
+                    <p class="text-muted-foreground text-sm mb-4">Data Transformation</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-muted-foreground text-xs">Port: 30005</span>
+                        <span class="text-muted-foreground text-xs service-status">Checking...</span>
+                    </div>
+                    <button onclick="openService('http://localhost:30005')" class="btn-primary w-full py-3 rounded-lg font-semibold">
+                        <i class="fas fa-external-link-alt mr-2"></i>Open dbt
+                    </button>
+                </div>
+
+                <!-- Airflow -->
+                <div class="card p-6" data-service="airflow">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="service-icon">
+                            <i class="fas fa-wind"></i>
+                        </div>
+                        <span class="status-indicator status-loading"></span>
+                    </div>
+                    <h3 class="text-foreground text-xl font-bold mb-2">Apache Airflow</h3>
+                    <p class="text-muted-foreground text-sm mb-4">Workflow Orchestration</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-muted-foreground text-xs">Port: 30006</span>
+                        <span class="text-muted-foreground text-xs service-status">Checking...</span>
+                    </div>
+                    <button onclick="openService('http://localhost:30006')" class="btn-primary w-full py-3 rounded-lg font-semibold">
+                        <i class="fas fa-external-link-alt mr-2"></i>Open Airflow
+                    </button>
+                </div>
+
+                <!-- Prometheus -->
+                <div class="card p-6" data-service="prometheus">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="service-icon">
+                            <i class="fas fa-chart-area"></i>
+                        </div>
+                        <span class="status-indicator status-loading"></span>
+                    </div>
+                    <h3 class="text-foreground text-xl font-bold mb-2">Prometheus</h3>
+                    <p class="text-muted-foreground text-sm mb-4">Monitoring & Metrics</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-muted-foreground text-xs">Port: 30007</span>
+                        <span class="text-muted-foreground text-xs service-status">Checking...</span>
+                    </div>
+                    <button onclick="openService('http://localhost:30007')" class="btn-primary w-full py-3 rounded-lg font-semibold">
+                        <i class="fas fa-external-link-alt mr-2"></i>Open Prometheus
+                    </button>
+                </div>
+
+                <!-- Grafana -->
+                <div class="card p-6" data-service="grafana">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="service-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <span class="status-indicator status-loading"></span>
+                    </div>
+                    <h3 class="text-foreground text-xl font-bold mb-2">Grafana</h3>
+                    <p class="text-muted-foreground text-sm mb-4">Data Visualization</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-muted-foreground text-xs">Port: 30008</span>
+                        <span class="text-muted-foreground text-xs service-status">Checking...</span>
+                    </div>
+                    <button onclick="openService('http://localhost:30008')" class="btn-primary w-full py-3 rounded-lg font-semibold">
+                        <i class="fas fa-external-link-alt mr-2"></i>Open Grafana
+                    </button>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="glass rounded-2xl p-6 mt-6 text-center">
+                <p class="text-foreground/80 font-medium">
+                    <i class="fas fa-copyright mr-2"></i>2025 Cagridge Gas Stations | Data Lakehouse Platform
+                </p>
+            </footer>
+        </div>
+
+        <script src="scripts.js"></script>
+    </body>
+</html>

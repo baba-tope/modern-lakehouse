@@ -1,0 +1,17 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: cagridge-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 172.18.0.200-172.18.1.50
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: cagridge-l2
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  - cagridge-pool

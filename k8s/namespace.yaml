@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: texas-gas-lakehouse
+  labels:
+    name: texas-gas-lakehouse
+    project: cagridge-lakehouse
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lakehouse-config
+  namespace: texas-gas-lakehouse
+data:
+  # Cagridge Gas Stations
+  COMPANY_NAME: "Cagridge"
+  LOCATIONS: "Houston,Dallas,Austin,San Antonio"
+  TIMEZONE: "America/Chicago"
+  
+  # Service Endpoints
+  POSTGRES_HOST: "postgres-service"
+  POSTGRES_PORT: "5432"
+  MINIO_ENDPOINT: "minio-service:9000"
+  NESSIE_URI: "http://nessie-service:19120/api/v1"
+  TRINO_ENDPOINT: "http://trino-service:8080"
+  AIRFLOW_WEBSERVER: "http://airflow-webserver:8080"
+  PROMETHEUS_ENDPOINT: "http://prometheus-service:9090"
+  GRAFANA_ENDPOINT: "http://grafana-service:3000"

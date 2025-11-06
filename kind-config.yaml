@@ -1,0 +1,80 @@
+# kind cluster configuration for Cagridge Data Lakehouse
+# 6 worker nodes + 1 control plane = 7 total nodes
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: cagridge
+nodes:
+  # Control plane node
+  - role: control-plane
+    kubeadmConfigPatches:
+    - |
+      kind: InitConfiguration
+      nodeRegistration:
+        kubeletExtraArgs:
+          node-labels: "ingress-ready=true"
+    extraPortMappings:
+    - containerPort: 80
+      hostPort: 80
+      protocol: TCP
+    - containerPort: 443
+      hostPort: 443
+      protocol: TCP
+    # Service ports for external access (30000-30050)
+    - containerPort: 30000
+      hostPort: 30000
+      protocol: TCP
+    - containerPort: 30001
+      hostPort: 30001
+      protocol: TCP
+    - containerPort: 30002
+      hostPort: 30002
+      protocol: TCP
+    - containerPort: 30003
+      hostPort: 30003
+      protocol: TCP
+    - containerPort: 30004
+      hostPort: 30004
+      protocol: TCP
+    - containerPort: 30005
+      hostPort: 30005
+      protocol: TCP
+    - containerPort: 30006
+      hostPort: 30006
+      protocol: TCP
+    - containerPort: 30007
+      hostPort: 30007
+      protocol: TCP
+    - containerPort: 30008
+      hostPort: 30008
+      protocol: TCP
+    - containerPort: 30009
+      hostPort: 30009
+      protocol: TCP
+  
+  # Worker nodes
+  - role: worker
+    labels:
+      workload: database
+  - role: worker
+    labels:
+      workload: storage
+  - role: worker
+    labels:
+      workload: query
+  - role: worker
+    labels:
+      workload: transform
+  - role: worker
+    labels:
+      workload: orchestration
+  - role: worker
+    labels:
+      workload: monitoring
+networking:
+  # Allows pods to communicate across nodes
+  podSubnet: "10.244.0.0/16"
+  serviceSubnet: "10.96.0.0/12"
+  # Disable default CNI, we'll use the cluster's default
+  disableDefaultCNI: false
+  # Enable IPv6
+  ipFamily: ipv4

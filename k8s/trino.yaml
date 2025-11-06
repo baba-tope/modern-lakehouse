@@ -1,0 +1,119 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: trino-pvc
+  namespace: texas-gas-lakehouse
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trino-coordinator-config
+  namespace: texas-gas-lakehouse
+data:
+  node.properties: |
+    node.environment=texas_lakehouse
+    node.data-dir=/data/trino
+  
+  jvm.config: |
+    -server
+    -Xmx2G
+    -XX:+UseG1GC
+    -XX:G1HeapRegionSize=32M
+    -XX:+ExplicitGCInvokesConcurrent
+    -XX:+HeapDumpOnOutOfMemoryError
+    -XX:+ExitOnOutOfMemoryError
+    -Djdk.attach.allowAttachSelf=true
+  
+  config.properties: |
+    coordinator=true
+    node-scheduler.include-coordinator=true
+    http-server.http.port=8080
+    discovery.uri=http://localhost:8080
+    query.max-memory=1GB
+    query.max-memory-per-node=512MB
+    memory.heap-headroom-per-node=256MB
+  
+  log.properties: |
+    io.trino=INFO
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: trino
+  namespace: texas-gas-lakehouse
+spec:
+  serviceName: trino-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trino
+  template:
+    metadata:
+      labels:
+        app: trino
+    spec:
+      containers:
+      - name: trino
+        image: trinodb/trino:430
+        ports:
+        - containerPort: 8080
+          name: http
+        volumeMounts:
+        - name: trino-storage
+          mountPath: /data/trino
+        - name: trino-coordinator-config
+          mountPath: /etc/trino
+        - name: trino-catalog-config
+          mountPath: /etc/trino/catalog
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /v1/info
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /v1/info
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: trino-storage
+        persistentVolumeClaim:
+          claimName: trino-pvc
+      - name: trino-coordinator-config
+        configMap:
+          name: trino-coordinator-config
+      - name: trino-catalog-config
+        configMap:
+          name: trino-catalog-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trino-service
+  namespace: texas-gas-lakehouse
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 172.18.0.204
+spec:
+  type: LoadBalancer
+  selector:
+    app: trino
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30004
+    name: http

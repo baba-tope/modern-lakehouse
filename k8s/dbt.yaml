@@ -1,0 +1,168 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dbt-pvc
+  namespace: texas-gas-lakehouse
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dbt-profiles
+  namespace: texas-gas-lakehouse
+data:
+  profiles.yml: |
+    cagridge_lakehouse:
+      target: dev
+      outputs:
+        dev:
+          type: postgres
+          host: postgres-service
+          port: 5432
+          user: texasdbadm
+          password: "{{ env_var('POSTGRES_PASSWORD') }}"
+          dbname: texas_db
+          schema: analytics
+          threads: 4
+          keepalives_idle: 0
+        prod:
+          type: trino
+          method: none
+          host: trino-service
+          port: 8080
+          database: iceberg
+          schema: cagridge
+          threads: 4
+          http_scheme: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dbt-server
+  namespace: texas-gas-lakehouse
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dbt-server
+  template:
+    metadata:
+      labels:
+        app: dbt-server
+    spec:
+      initContainers:
+      - name: dbt-setup
+        image: python:3.10-slim
+        command: ["/bin/bash"]
+        args:
+          - -c
+          - |
+            # Install curl and dbt-trino
+            apt-get update && apt-get install -y curl git && rm -rf /var/lib/apt/lists/*
+            pip install --no-cache-dir dbt-trino==1.6.2 dbt-postgres==1.6.2
+            mkdir -p /root/.dbt
+            cp /dbt-profiles/profiles.yml /root/.dbt/profiles.yml
+            # Wait for Trino to be ready
+            until curl -s http://trino-service:8080/v1/info > /dev/null 2>&1; do
+              echo "Waiting for Trino..."
+              sleep 5
+            done
+            echo "Trino is ready"
+            # Initialize dbt project structure if not exists
+            mkdir -p /dbt/models/staging /dbt/models/mart /dbt/analyses /dbt/tests /dbt/seeds /dbt/macros /dbt/snapshots
+        volumeMounts:
+        - name: dbt-profiles
+          mountPath: /dbt-profiles
+        - name: dbt-storage
+          mountPath: /dbt
+        - name: dbt-project-config
+          mountPath: /dbt-project-config
+      containers:
+      - name: dbt
+        image: python:3.10-slim
+        command: ["/bin/bash"]
+        args:
+          - -c
+          - |
+            # Install dbt-trino and dbt-postgres
+            pip install --no-cache-dir dbt-trino==1.6.2 dbt-postgres==1.6.2
+            mkdir -p /root/.dbt
+            cp /dbt-profiles/profiles.yml /root/.dbt/profiles.yml
+            # Copy dbt project config if not exists
+            if [ ! -f /dbt/dbt_project.yml ]; then
+              cp /dbt-project-config/dbt_project.yml /dbt/
+            fi
+            # Create model directories
+            mkdir -p /dbt/models/staging /dbt/models/mart
+            # Copy model files
+            cp /dbt-project-config/stg_fuel_sales.sql /dbt/models/staging/ 2>/dev/null || true
+            cp /dbt-project-config/stg_store_sales.sql /dbt/models/staging/ 2>/dev/null || true
+            cp /dbt-project-config/stg_stations.sql /dbt/models/staging/ 2>/dev/null || true
+            cp /dbt-project-config/schema.yml /dbt/models/staging/ 2>/dev/null || true
+            cp /dbt-project-config/fct_daily_sales.sql /dbt/models/mart/ 2>/dev/null || true
+            cp /dbt-project-config/daily_station_performance.sql /dbt/models/mart/ 2>/dev/null || true
+            # Change to dbt directory
+            cd /dbt
+            echo "dbt project initialized at /dbt"
+            ls -la /dbt/
+            ls -la /dbt/models/staging/
+            # Keep container running and provide shell access
+            tail -f /dev/null
+        ports:
+        - containerPort: 8580
+          name: http
+        env:
+        - name: DBT_PROFILES_DIR
+          value: "/root/.dbt"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
+        workingDir: /dbt
+        volumeMounts:
+        - name: dbt-storage
+          mountPath: /dbt
+        - name: dbt-profiles
+          mountPath: /dbt-profiles
+        - name: dbt-project-config
+          mountPath: /dbt-project-config
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: dbt-storage
+        persistentVolumeClaim:
+          claimName: dbt-pvc
+      - name: dbt-profiles
+        configMap:
+          name: dbt-profiles
+      - name: dbt-project-config
+        configMap:
+          name: dbt-project-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dbt-service
+  namespace: texas-gas-lakehouse
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 172.18.0.205
+spec:
+  type: LoadBalancer
+  selector:
+    app: dbt-server
+  ports:
+  - port: 8580
+    targetPort: 8580
+    nodePort: 30005
+    name: http

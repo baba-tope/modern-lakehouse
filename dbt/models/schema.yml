@@ -1,0 +1,81 @@
+version: 2
+
+sources:
+  - name: postgres
+    description: PostgreSQL transactional database
+    database: texas_db
+    schema: analytics
+    tables:
+      - name: stations
+        description: Gas station locations and metadata
+        columns:
+          - name: station_id
+            description: Primary key
+            tests:
+              - unique
+              - not_null
+      
+      - name: fuel_sales
+        description: Fuel sales transactions
+        columns:
+          - name: sale_id
+            description: Primary key
+            tests:
+              - unique
+              - not_null
+          - name: station_id
+            description: Foreign key to stations
+            tests:
+              - not_null
+      
+      - name: store_sales
+        description: Convenience store sales transactions
+        columns:
+          - name: sale_id
+            description: Primary key
+            tests:
+              - unique
+              - not_null
+          - name: station_id
+            description: Foreign key to stations
+            tests:
+              - not_null
+
+models:
+  - name: stg_fuel_sales
+    description: Staged and cleaned fuel sales data
+    columns:
+      - name: sale_id
+        description: Unique sale identifier
+        tests:
+          - unique
+          - not_null
+      - name: fuel_type
+        description: Type of fuel (REGULAR, PREMIUM, DIESEL)
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['REGULAR', 'PREMIUM', 'DIESEL']
+  
+  - name: stg_store_sales
+    description: Staged and cleaned store sales data
+    columns:
+      - name: sale_id
+        description: Unique sale identifier
+        tests:
+          - unique
+          - not_null
+  
+  - name: daily_station_performance
+    description: Daily aggregated performance metrics by station
+    columns:
+      - name: station_name
+        description: Name of the gas station
+        tests:
+          - not_null
+      - name: date
+        description: Transaction date
+        tests:
+          - not_null
+      - name: total_revenue
+        description: Combined fuel and store revenue

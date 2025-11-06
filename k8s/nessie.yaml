@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nessie-pvc
+  namespace: texas-gas-lakehouse
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nessie-config
+  namespace: texas-gas-lakehouse
+data:
+  application.properties: |
+    quarkus.http.port=19120
+    nessie.version.store.type=ROCKSDB
+    nessie.version.store.persist.rocks.database-path=/nessie/data
+    quarkus.log.level=INFO
+    quarkus.log.console.enable=true
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nessie
+  namespace: texas-gas-lakehouse
+spec:
+  serviceName: nessie-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nessie
+  template:
+    metadata:
+      labels:
+        app: nessie
+    spec:
+      containers:
+      - name: nessie
+        image: projectnessie/nessie:0.74.0
+        ports:
+        - containerPort: 19120
+          name: http
+        volumeMounts:
+        - name: nessie-storage
+          mountPath: /nessie/data
+        - name: nessie-config
+          mountPath: /deployments/config
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /q/health/live
+            port: 19120
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /q/health/ready
+            port: 19120
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      volumes:
+      - name: nessie-storage
+        persistentVolumeClaim:
+          claimName: nessie-pvc
+      - name: nessie-config
+        configMap:
+          name: nessie-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nessie-service
+  namespace: texas-gas-lakehouse
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 172.18.0.203
+spec:
+  type: LoadBalancer
+  selector:
+    app: nessie
+  ports:
+  - port: 19120
+    targetPort: 19120
+    nodePort: 30003
+    name: http

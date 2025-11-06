@@ -1,0 +1,68 @@
+version: 2
+
+sources:
+  - name: analytics
+    description: Raw analytics data from PostgreSQL
+    database: texas_db
+    schema: analytics
+    tables:
+      - name: fuel_sales
+        description: Fuel sales transactions
+        columns:
+          - name: sale_id
+            description: Primary key
+            tests:
+              - unique
+              - not_null
+          - name: station_id
+            description: Foreign key to stations
+          - name: transaction_date
+            description: Timestamp of the transaction
+          - name: fuel_type
+            description: Type of fuel (Regular, Premium, Diesel)
+          - name: gallons
+            description: Gallons sold
+          - name: price_per_gallon
+            description: Price per gallon
+          - name: total_amount
+            description: Total sale amount
+          - name: payment_method
+            description: Payment method used
+
+      - name: store_sales
+        description: Store item sales transactions
+        columns:
+          - name: sale_id
+            description: Primary key
+            tests:
+              - unique
+              - not_null
+          - name: station_id
+            description: Foreign key to stations
+          - name: transaction_date
+            description: Timestamp of the transaction
+          - name: product_category
+            description: Category of product sold
+          - name: product_name
+            description: Name of product
+          - name: quantity
+            description: Quantity sold
+          - name: unit_price
+            description: Price per unit
+          - name: total_amount
+            description: Total sale amount
+
+      - name: stations
+        description: Gas station master data
+        columns:
+          - name: station_id
+            description: Primary key
+            tests:
+              - unique
+              - not_null
+          - name: name
+            description: Station name
+          - name: location
+            description: City location
+          - name: address
+            description: Street address

@@ -1,0 +1,94 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/.user.yml
+
+# Airflow
+airflow/logs/
+airflow/*.db
+airflow/*.pid
+airflow/airflow-webserver.pid
+airflow/unittests.cfg
+
+# Kubernetes
+*.kubeconfig
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+
+# Environment variables (contains secrets and IPs - NEVER COMMIT)
+.env
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+
+# MinIO data
+data/minio/*
+!data/minio/.gitkeep
+
+# PostgreSQL data
+data/postgres/*
+!data/postgres/.gitkeep
+
+# Secrets
+secrets/
+*.pem
+*.key
+*.crt
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Backups
+backups/
+*.sql.gz
+*.tar.gz

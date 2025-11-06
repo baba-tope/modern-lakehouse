@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-exporter-config
+  namespace: texas-gas-lakehouse
+data:
+  DATA_SOURCE_NAME: "postgresql://texasdbadm:${POSTGRES_PASSWORD}@postgres-service:5432/texas_db?sslmode=disable"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-exporter
+  namespace: texas-gas-lakehouse
+  labels:
+    app: postgres-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-exporter
+  template:
+    metadata:
+      labels:
+        app: postgres-exporter
+    spec:
+      containers:
+      - name: postgres-exporter
+        image: prometheuscommunity/postgres-exporter:v0.15.0
+        ports:
+        - containerPort: 9187
+          name: metrics
+        env:
+        - name: DATA_SOURCE_NAME
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: DATA_SOURCE_NAME
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-exporter
+  namespace: texas-gas-lakehouse
+  labels:
+    app: postgres-exporter
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9187
+    targetPort: 9187
+    name: metrics
+  selector:
+    app: postgres-exporter
