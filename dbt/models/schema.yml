@@ -3,7 +3,7 @@ version: 2
 sources:
   - name: postgres
     description: PostgreSQL transactional database
-    database: texas_db
+    database: "{{ env_var('POSTGRES_DB') }}"
     schema: analytics
     tables:
       - name: stations

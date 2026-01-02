@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Cagridge Data Lakehouse - Deploy all services (bash)
+# Deploy all services for the data lakehouse
 
 project_root="$(cd "$(dirname "$0")" && pwd)"
 cd "$project_root"
@@ -20,7 +20,7 @@ fi
 NAMESPACE="${NAMESPACE:-texas-gas-lakehouse}"
 
 echo "====================================="
-echo "  Cagridge Data Lakehouse Deployment"
+echo "  Cagridge Data Lakehouse Deployment "
 echo "====================================="
 
 echo "[1/8] Configuring IPs and dashboard from .env..."
@@ -58,6 +58,13 @@ kubectl apply -f k8s/airflow.yaml
 kubectl apply -f k8s/prometheus.yaml
 kubectl apply -f k8s/grafana.yaml
 
+echo "[5.5/8] Deploying dashboard API..."
+# This assumes you have built and pushed the docker image, e.g., to 'babatope/dashboard-api:1.0.1'
+# If running locally, you may need to build and load into kind:
+# 1. docker build -t babatope/dashboard-api:1.0.5 dashboard-api/
+# 2. kind load docker-image babatope/dashboard-api:1.0.5 --name cagridge
+kubectl apply -f k8s/dashboard-api.yaml
+
 echo "[6/8] Creating dashboard ConfigMap and deploying dashboard..."
 kubectl create configmap dashboard-html --from-file=dashboard/index.html -n "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f k8s/dashboard.yaml
@@ -66,7 +73,6 @@ echo "[7/8] Waiting for PostgreSQL to become Ready..."
 kubectl wait --for=condition=Ready pod -l app=postgres -n "$NAMESPACE" --timeout=10m || true
 
 echo "[7.5/8] Initializing PostgreSQL database schema..."
-# Wait a bit more for PostgreSQL to fully start accepting connections
 sleep 10
 if kubectl get pod -n "$NAMESPACE" -l app=postgres -o name | grep -q postgres; then
   POD_NAME=$(kubectl get pod -n "$NAMESPACE" -l app=postgres -o jsonpath='{.items[0].metadata.name}')
@@ -81,7 +87,6 @@ else
 fi
 
 echo "[8/8] Waiting for remaining pods to become Ready (10 min timeout)..."
-# Best-effort wait; continue if timeout
 kubectl wait --for=condition=Ready pods --all -n "$NAMESPACE" --timeout=10m || true
 
 echo "[8/8] Current pod status:"
@@ -99,9 +104,7 @@ dbt:                http://${DBT_IP}:30005
 Airflow:            http://${AIRFLOW_IP}:30006
 Prometheus:         http://${PROMETHEUS_IP}:30007
 Grafana:            http://${GRAFANA_IP}:30008
-
-Note: IPs configured from .env file (METALLB_IP_RANGE).
-      Add them to /etc/hosts for friendly names (optional).
+Dashboard API:      http://${DASHBOARD_API_IP}:30010
 EOF
 
 echo "[✓] Deployment complete"

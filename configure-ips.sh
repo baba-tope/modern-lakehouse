@@ -45,6 +45,10 @@ echo "[•] Updating service manifests with LoadBalancer IPs..."
 yq eval ".metadata.annotations.\"metallb.universe.tf/loadBalancerIPs\" = \"${DASHBOARD_IP}\"" -i k8s/dashboard.yaml 2>/dev/null || \
   sed -i "s|metallb.universe.tf/loadBalancerIPs:.*|metallb.universe.tf/loadBalancerIPs: ${DASHBOARD_IP}|" k8s/dashboard.yaml
 
+# Add the dashboard-api service
+yq eval ".metadata.annotations.\"metallb.universe.tf/loadBalancerIPs\" = \"${DASHBOARD_API_IP}\"" -i k8s/dashboard-api.yaml 2>/dev/null || \
+  sed -i "s|metallb.universe.tf/loadBalancerIPs:.*|metallb.universe.tf/loadBalancerIPs: ${DASHBOARD_API_IP}|" k8s/dashboard-api.yaml
+
 # Update postgres
 yq eval ".metadata.annotations.\"metallb.universe.tf/loadBalancerIPs\" = \"${POSTGRES_IP}\"" -i k8s/postgres.yaml 2>/dev/null || \
   sed -i "s|metallb.universe.tf/loadBalancerIPs:.*|metallb.universe.tf/loadBalancerIPs: ${POSTGRES_IP}|" k8s/postgres.yaml
@@ -126,3 +130,4 @@ echo "  dbt:         ${DBT_IP}:30005"
 echo "  Airflow:     ${AIRFLOW_IP}:30006"
 echo "  Prometheus:  ${PROMETHEUS_IP}:30007"
 echo "  Grafana:     ${GRAFANA_IP}:30008"
+echo "  Dashboard API: ${DASHBOARD_API_IP}:30010"

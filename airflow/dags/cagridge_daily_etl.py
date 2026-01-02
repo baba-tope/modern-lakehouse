@@ -157,6 +157,28 @@ def data_quality_checks(**context):
     
     return "All checks passed"
 
+# Write metrics to the dashboard table
+def update_dashboard_metrics(**context):
+    """Saves the ETL results to the dashboard metrics table in PostgreSQL."""
+    logging.info("Updating dashboard metrics table...")
+    pg_hook = PostgresHook(postgres_conn_id='postgres_default')
+    
+    ti = context['ti']
+    fuel_count = ti.xcom_pull(key='fuel_sales_count', task_ids='extract_fuel_sales')
+    store_count = ti.xcom_pull(key='store_sales_count', task_ids='extract_store_sales')
+    
+    sql = """
+        INSERT INTO analytics.dashboard_metrics (metric_name, metric_value, updated_at)
+        VALUES
+            ('etl_last_run', 'Success', NOW()),
+            ('etl_fuel_count', %s, NOW()),
+            ('etl_store_count', %s, NOW())
+        ON CONFLICT (metric_name) DO UPDATE
+        SET metric_value = EXCLUDED.metric_value, updated_at = EXCLUDED.updated_at;
+    """
+    pg_hook.run(sql, parameters=(fuel_count, store_count))
+    logging.info(f"Dashboard metrics updated: fuel_count={fuel_count}, store_count={store_count}")
+
 # Define tasks
 extract_fuel_task = PythonOperator(
     task_id='extract_fuel_sales',
@@ -188,5 +210,11 @@ report_task = PythonOperator(
     dag=dag,
 )
 
+update_dashboard_task = PythonOperator(
+    task_id='update_dashboard_metrics',
+    python_callable=update_dashboard_metrics,
+    dag=dag,
+)
+
 # Define task dependencies
-[extract_fuel_task, extract_store_task] >> transform_load_task >> quality_check_task >> report_task
+[extract_fuel_task, extract_store_task] >> transform_load_task >> quality_check_task >> report_task >> update_dashboard_task

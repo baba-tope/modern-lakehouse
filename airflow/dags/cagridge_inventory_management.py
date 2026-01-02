@@ -12,7 +12,7 @@ import logging
 default_args = {
     'owner': 'cagridge',
     'depends_on_past': False,
-    'start_date': datetime(2024, 1, 1),
+    'start_date': datetime(2025, 1, 1),
     'email': ['inventory@cagridge.com'],
     'email_on_failure': True,
     'email_on_retry': False,
@@ -162,6 +162,28 @@ def update_inventory_metrics(**context):
     
     return len(metrics)
 
+# Write inventory alerts to the dashboard table
+def update_dashboard_inventory_metrics(**context):
+    """Saves the inventory alert counts to the dashboard metrics table."""
+    logging.info("Updating dashboard inventory metrics...")
+    pg_hook = PostgresHook(postgres_conn_id='postgres_default')
+    
+    ti = context['ti']
+    fuel_alerts = ti.xcom_pull(key='low_fuel_alerts', task_ids='check_fuel_levels')
+    stock_alerts = ti.xcom_pull(key='low_stock_alerts', task_ids='check_store_inventory')
+    
+    sql = """
+        INSERT INTO analytics.dashboard_metrics (metric_name, metric_value, updated_at)
+        VALUES
+            ('inv_last_run', 'Success', NOW()),
+            ('inv_fuel_alerts', %s, NOW()),
+            ('inv_stock_alerts', %s, NOW())
+        ON CONFLICT (metric_name) DO UPDATE
+        SET metric_value = EXCLUDED.metric_value, updated_at = EXCLUDED.updated_at;
+    """
+    pg_hook.run(sql, parameters=(fuel_alerts, stock_alerts))
+    logging.info(f"Dashboard inventory metrics updated: fuel_alerts={fuel_alerts}, stock_alerts={stock_alerts}")
+
 # Define tasks
 check_fuel_task = PythonOperator(
     task_id='check_fuel_levels',
@@ -187,5 +209,11 @@ metrics_task = PythonOperator(
     dag=dag,
 )
 
+update_dashboard_inv_task = PythonOperator(
+    task_id='update_dashboard_inventory_metrics',
+    python_callable=update_dashboard_inventory_metrics,
+    dag=dag,
+)
+
 # Define task dependencies
-[check_fuel_task, check_inventory_task] >> reorder_task >> metrics_task
+[check_fuel_task, check_inventory_task] >> reorder_task >> metrics_task >> update_dashboard_inv_task

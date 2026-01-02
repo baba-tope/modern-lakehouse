@@ -3,7 +3,7 @@ version: 2
 sources:
   - name: analytics
     description: Raw analytics data from PostgreSQL
-    database: texas_db
+    database: "{{ env_var('POSTGRES_DB') }}"
     schema: analytics
     tables:
       - name: fuel_sales

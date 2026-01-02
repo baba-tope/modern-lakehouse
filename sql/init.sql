@@ -1,7 +1,7 @@
 -- Cagridge Gas Stations Database Schema
 -- Initial setup for Texas locations
 
--- Create schema for each location
+-- Schema for each location
 CREATE SCHEMA IF NOT EXISTS houston;
 CREATE SCHEMA IF NOT EXISTS dallas;
 CREATE SCHEMA IF NOT EXISTS austin;
@@ -121,14 +121,14 @@ CREATE TABLE IF NOT EXISTS analytics.loyalty_customers (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert sample stations
+-- Gas stations
 INSERT INTO analytics.stations (station_name, location, address, city, zip_code, lat, lon, opened_date) VALUES
 ('Cagridge Houston Main', 'Houston', '1234 Main St', 'Houston', '77002', 29.7604, -95.3698, '2020-01-15'),
 ('Cagridge Dallas Central', 'Dallas', '5678 Central Ave', 'Dallas', '75201', 32.7767, -96.7970, '2020-03-20'),
 ('Cagridge Austin Downtown', 'Austin', '9012 Congress Ave', 'Austin', '78701', 30.2672, -97.7431, '2020-06-10'),
 ('Cagridge San Antonio Plaza', 'San Antonio', '3456 Commerce St', 'San Antonio', '78205', 29.4241, -98.4936, '2020-09-05');
 
--- Create indexes for better query performance
+-- Indexes for better query performance
 CREATE INDEX idx_fuel_sales_station ON analytics.fuel_sales(station_id);
 CREATE INDEX idx_fuel_sales_date ON analytics.fuel_sales(transaction_date);
 CREATE INDEX idx_store_sales_station ON analytics.store_sales(station_id);
@@ -139,7 +139,7 @@ CREATE INDEX idx_employees_station ON analytics.employees(station_id);
 CREATE INDEX idx_shifts_employee ON analytics.employee_shifts(employee_id);
 CREATE INDEX idx_shifts_date ON analytics.employee_shifts(shift_date);
 
--- Create a view for daily sales summary
+-- View for daily sales summary
 CREATE OR REPLACE VIEW analytics.daily_sales_summary AS
 SELECT 
     s.station_name,
@@ -155,3 +155,26 @@ LEFT JOIN analytics.store_sales ss ON s.station_id = ss.station_id
     AND DATE(fs.transaction_date) = DATE(ss.transaction_date)
 GROUP BY s.station_name, s.location, DATE(fs.transaction_date)
 ORDER BY sale_date DESC, s.location;
+
+-- Key-value table for dashboard metrics
+CREATE TABLE IF NOT EXISTS analytics.dashboard_metrics (
+    metric_name VARCHAR(100) PRIMARY KEY,
+    metric_value VARCHAR(255),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Default values for the dashboard
+INSERT INTO analytics.dashboard_metrics (metric_name, metric_value, updated_at)
+VALUES
+    ('etl_last_run', 'Pending', '1970-01-01 00:00:00'),
+    ('etl_fuel_count', '0', '1970-01-01 00:00:00'),
+    ('etl_store_count', '0', '1970-01-01 00:00:00'),
+    ('etl_next_run', 'Not Scheduled', '1970-01-01 00:00:00'),
+    ('inv_last_run', 'Pending', '1970-01-01 00:00:00'),
+    ('inv_fuel_alerts', '0', '1970-01-01 00:00:00'),
+    ('inv_stock_alerts', '0', '1970-01-01 00:00:00'),
+    ('dbt_last_run', 'Pending', '1970-01-01 00:00:00'),
+    ('dbt_staging_models', '0', '1970-01-01 00:00:00'),
+    ('dbt_mart_models', '0', '1970-01-01 00:00:00'),
+    ('dbt_tests', '0', '1970-01-01 00:00:00')
+ON CONFLICT (metric_name) DO NOTHING;

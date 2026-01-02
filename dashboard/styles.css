@@ -3,8 +3,6 @@
 :root {
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
   --primary: 221.2 83.2% 53.3%;
   --primary-foreground: 210 40% 98%;
   --secondary: 210 40% 96.1%;
@@ -13,14 +11,11 @@
   --muted-foreground: 215 20.2% 50%;
   --accent: 210 40% 96.1%;
   --accent-foreground: 222.2 47.4% 11.2%;
-  --border: 214.3 31.8% 91.4%;
 }
 
 .dark {
   --background: 222.2 84% 4.9%;
   --foreground: 210 40% 98%;
-  --card: 217.2 32.6% 17.5%;
-  --card-foreground: 210 40% 98%;
   --primary: 217.2 91.2% 59.8%;
   --primary-foreground: 222.2 47.4% 11.2%;
   --secondary: 217.2 32.6% 17.5%;
@@ -29,7 +24,6 @@
   --muted-foreground: 215 20.2% 65.1%;
   --accent: 217.2 32.6% 17.5%;
   --accent-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
 }
 
 * { font-family: 'Inter', sans-serif; }
@@ -38,45 +32,71 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
+  background-image: linear-gradient(120deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
 }
 
-/* Glassmorphic card effect */
 .glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  background: rgba(255, 255, 255, 0.4); 
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.05);
 }
 
 .dark .glass {
-  background: rgba(27, 37, 56, 0.6);
+  background: rgba(30, 41, 59, 0.6); /* Dark slate @ 60% */
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
 }
 
 .card {
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  background: rgba(255, 255, 255, 0.4); /* Light mode glass */
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+  
   border-radius: 0.75rem;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
 }
 
+.dark .card {
+  background: rgba(30, 41, 59, 0.6); /* Dark mode glass (slate-800 @ 60%) */
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}
+
+
 .card:hover {
   transform: translateY(-4px);
-  border-color: hsl(var(--primary) / 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
 }
 
 .dark .card:hover {
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.3);
 }
+
 
 .theme-toggle {
   cursor: pointer;
   transition: all 0.3s ease;
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.dark .theme-toggle {
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .theme-toggle:hover {
@@ -146,10 +166,20 @@ body {
 
 /* Location badges */
 .location-badge {
-  background: hsl(var(--muted));
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: hsl(var(--muted-foreground));
   transition: all 0.3s ease;
 }
+
+.dark .location-badge {
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: hsl(var(--muted-foreground));
+}
+
 
 .location-badge:hover {
   background: hsl(var(--primary) / 0.1);
