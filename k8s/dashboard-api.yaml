@@ -18,6 +18,13 @@ spec:
       containers:
       - name: dashboard-api
         image: babatope/dashboard-api:1.0.6
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
         imagePullPolicy: Always # Or "IfNotPresent" if using local image
         ports:
         - containerPort: 8081

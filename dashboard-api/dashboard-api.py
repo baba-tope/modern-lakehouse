@@ -1,12 +1,14 @@
 import os
+import logging
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg2
 import psycopg2.extras
-from datetime import date, timedelta
 from pydantic import BaseModel
 from typing import Optional, Dict
+
+logger = logging.getLogger("dashboard-api")
 
 # Pydantic Models for Response Validation
 class Kpis(BaseModel):
@@ -26,12 +28,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Enable CORS for all routes (to allow the dashboard frontend to call this API)
+# CORS: the dashboard is a static site served from a different origin, so
+# cross-origin GETs are allowed. Origins are configurable via
+# DASHBOARD_ALLOWED_ORIGINS (comma-separated); the default "*" is safe here
+# because this is public, read-only data and credentials are disabled --
+# "*" together with allow_credentials=True is the invalid/insecure combination.
+_origins = [o.strip() for o in os.getenv("DASHBOARD_ALLOWED_ORIGINS", "*").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=_origins,
+    allow_credentials=False,
+    allow_methods=["GET"],
     allow_headers=["*"],
 )
 
@@ -54,7 +61,7 @@ def get_db_connection():
         )
         return conn
     except Exception as e:
-        print(f"Error connecting to database: {e}")
+        logger.error("Error connecting to database: %s", e)
         return None
 
 # API Endpoints
@@ -66,7 +73,7 @@ def get_dashboard_data():
     """
     conn = get_db_connection()
     if not conn:
-        return {"error": "Database connection failed"}
+        raise HTTPException(status_code=503, detail="Database connection failed")
 
     try:
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
@@ -97,10 +104,12 @@ def get_dashboard_data():
             response_data = DashboardData(kpis=kpis, ops=ops)
             
             return response_data
-            
+
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"Error executing query: {e}")
-        return {"error": "Failed to retrieve data"}
+        logger.error("Error executing query: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to retrieve data")
     finally:
         if conn:
             conn.close()

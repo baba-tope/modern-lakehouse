@@ -42,6 +42,13 @@ spec:
       containers:
       - name: nessie
         image: projectnessie/nessie:0.76.6
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
         ports:
         - containerPort: 19120
           name: http

@@ -6,7 +6,6 @@ Extracts data from PostgreSQL, transforms, and loads to Iceberg via Trino
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 import logging
 
@@ -25,7 +24,7 @@ dag = DAG(
     'cagridge_daily_etl',
     default_args=default_args,
     description='Daily ETL pipeline for Cagridge gas stations',
-    schedule_interval='0 2 * * *',  # Run at 2 AM daily
+    schedule='0 2 * * *',  # Run at 2 AM daily
     catchup=False,
     tags=['cagridge', 'etl', 'daily'],
 )

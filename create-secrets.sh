@@ -45,9 +45,19 @@ kubectl create secret generic minio-secret \
 
 echo "[•] Creating Airflow secret..."
 airflow_conn="postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-service:5432/${POSTGRES_DB}"
-# Generate Fernet key if not in .env
-AIRFLOW_FERNET_KEY="${AIRFLOW_FERNET_KEY:-$(openssl rand -base64 32)}"
-AIRFLOW_SECRET_KEY="${AIRFLOW_SECRET_KEY:-$(openssl rand -base64 32)}"
+# The Fernet/secret keys must stay stable across runs: regenerating them
+# invalidates every stored encrypted connection. Generate once and persist to
+# .env so re-running this script reuses the same keys.
+if [[ -z "${AIRFLOW_FERNET_KEY:-}" ]]; then
+  AIRFLOW_FERNET_KEY="$(openssl rand -base64 32)"
+  printf '\nAIRFLOW_FERNET_KEY=%s\n' "$AIRFLOW_FERNET_KEY" >> .env
+  echo "[•] Generated AIRFLOW_FERNET_KEY and saved it to .env"
+fi
+if [[ -z "${AIRFLOW_SECRET_KEY:-}" ]]; then
+  AIRFLOW_SECRET_KEY="$(openssl rand -base64 32)"
+  printf 'AIRFLOW_SECRET_KEY=%s\n' "$AIRFLOW_SECRET_KEY" >> .env
+  echo "[•] Generated AIRFLOW_SECRET_KEY and saved it to .env"
+fi
 # Use provided credentials or defaults
 AIRFLOW_USERNAME="${AIRFLOW_USERNAME:-admin}"
 AIRFLOW_PASSWORD="${AIRFLOW_PASSWORD:-admin}"
@@ -102,8 +112,11 @@ connection-user=${POSTGRES_USER}
 connection-password=${POSTGRES_PASSWORD}
 EOF
 
-echo "[•] Creating Trino catalog ConfigMap..."
-kubectl create configmap trino-catalog-config \
+# Trino catalog files carry the MinIO secret key and the Postgres password, so
+# they are stored as a Secret (not a ConfigMap). Mounted as files, identical to
+# a ConfigMap volume, but treated as secret material by Kubernetes.
+echo "[•] Creating Trino catalog Secret..."
+kubectl create secret generic trino-catalog-config \
   --from-file=iceberg.properties="$workdir/iceberg.properties" \
   --from-file=postgres.properties="$workdir/postgres.properties" \
   -n "$NAMESPACE" \
@@ -135,8 +148,9 @@ EOF
 # replace template vars
 sed -i "s|\${POSTGRES_DB}|${POSTGRES_DB}|g; s|\${POSTGRES_USER}|${POSTGRES_USER}|g; s|\${POSTGRES_PASSWORD}|${POSTGRES_PASSWORD}|g" "$workdir/datasources.yaml"
 
-echo "[•] Creating Grafana datasources ConfigMap..."
-kubectl create configmap grafana-datasources \
+# The datasources file embeds the Postgres password, so store it as a Secret.
+echo "[•] Creating Grafana datasources Secret..."
+kubectl create secret generic grafana-datasources \
   --from-file=datasources.yaml="$workdir/datasources.yaml" \
   -n "$NAMESPACE" \
   --dry-run=client -o yaml | kubectl apply -f -

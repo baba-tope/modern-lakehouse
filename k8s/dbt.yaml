@@ -58,6 +58,13 @@ spec:
       initContainers:
       - name: dbt-setup
         image: python:3.13-slim
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
         command: ["/bin/bash"]
         args:
           - -c
@@ -85,6 +92,13 @@ spec:
       containers:
       - name: dbt
         image: python:3.13-slim
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
         command: ["/bin/bash"]
         args:
           - -c

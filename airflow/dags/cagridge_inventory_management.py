@@ -24,7 +24,7 @@ dag = DAG(
     'cagridge_inventory_management',
     default_args=default_args,
     description='Inventory monitoring and alerts for all stations',
-    schedule_interval='0 */4 * * *',  # Run every 4 hours
+    schedule='0 */4 * * *',  # Run every 4 hours
     catchup=False,
     tags=['cagridge', 'inventory', 'monitoring'],
 )

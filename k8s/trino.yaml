@@ -61,6 +61,13 @@ spec:
       containers:
       - name: trino
         image: trinodb/trino:483
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
         ports:
         - containerPort: 8080
           name: http
@@ -98,8 +105,8 @@ spec:
         configMap:
           name: trino-coordinator-config
       - name: trino-catalog-config
-        configMap:
-          name: trino-catalog-config
+        secret:
+          secretName: trino-catalog-config
 ---
 apiVersion: v1
 kind: Service

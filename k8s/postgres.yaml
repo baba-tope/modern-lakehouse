@@ -29,6 +29,12 @@ spec:
       containers:
       - name: postgres
         image: postgres:15.18-alpine
+        # No capability drop: the alpine entrypoint uses gosu to drop from root
+        # to the postgres user during init, which needs SETUID/SETGID.
+        securityContext:
+          allowPrivilegeEscalation: false
+          seccompProfile:
+            type: RuntimeDefault
         ports:
         - containerPort: 5432
           name: postgres
