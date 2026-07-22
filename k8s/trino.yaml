@@ -1,4 +1,4 @@
-apiVersion: v1
+﻿apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: trino-pvc
@@ -60,7 +60,7 @@ spec:
     spec:
       containers:
       - name: trino
-        image: trinodb/trino:430
+        image: trinodb/trino:483
         ports:
         - containerPort: 8080
           name: http

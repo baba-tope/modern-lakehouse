@@ -1,4 +1,4 @@
-apiVersion: apps/v1
+﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: dashboard-api
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: dashboard-api
-        image: babatope/dashboard-api:1.0.5
+        image: babatope/dashboard-api:1.0.6
         imagePullPolicy: Always # Or "IfNotPresent" if using local image
         ports:
         - containerPort: 8081

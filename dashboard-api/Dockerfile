@@ -1,5 +1,5 @@
-# Use a slim Python base image
-FROM python:3.10-slim
+﻿# Use a slim Python base image
+FROM python:3.13-slim
 
 WORKDIR /app
 
