@@ -1,0 +1,15 @@
+# Normalize line endings to LF in the repo and the working tree. These
+# projects build and run in Linux containers, so shell scripts, Dockerfiles,
+# and manifests must use LF regardless of the host OS.
+* text=auto eol=lf
+
+# Binary assets: never normalize.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
