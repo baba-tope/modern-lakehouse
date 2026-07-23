@@ -7,7 +7,7 @@ project_root="$(cd "$(dirname "$0")" && pwd)"
 cd "$project_root"
 
 if [[ ! -f .env ]]; then
-  echo "[✗] .env file not found" >&2
+  echo "[FAIL] .env file not found" >&2
   exit 1
 fi
 
@@ -117,7 +117,7 @@ fi
 # Update Grafana root URL in secret creation
 sed -i "s|GF_SERVER_ROOT_URL=\"http://[0-9.]*:[0-9]*\"|GF_SERVER_ROOT_URL=\"http://${GRAFANA_IP}:30008\"|" create-secrets.sh
 
-echo "[✓] IP configuration complete"
+echo "[OK] IP configuration complete"
 echo ""
 echo "Configured IPs:"
 echo "  Ingress:     ${INGRESS_IP}:80 (Nginx Ingress Controller)"

@@ -19,4 +19,4 @@ echo "[•] Deleting namespace '$NAMESPACE'..."
 kubectl delete namespace "$NAMESPACE" --ignore-not-found
 
 echo "[i] If you used dynamic provisioning, volumes are reclaimed by the storage class. If any PVs remain, delete them manually if desired."
-echo "[✓] Cleanup complete"
+echo "[OK] Cleanup complete"

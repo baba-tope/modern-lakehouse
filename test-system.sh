@@ -16,10 +16,10 @@ test_service() {
     local test=$2
     echo -n "Testing $name... "
     if eval "$test" >/dev/null 2>&1; then
-        echo "✓ PASS"
+        echo "OK PASS"
         ((PASS++))
     else
-        echo "✗ FAIL"
+        echo "FAIL FAIL"
         ((FAIL++))
     fi
 }
@@ -77,9 +77,9 @@ echo "Test Results: $PASS passed, $FAIL failed"
 echo "========================================="
 
 if [ $FAIL -eq 0 ]; then
-    echo "✓ All tests passed!"
+    echo "OK All tests passed!"
     exit 0
 else
-    echo "✗ Some tests failed. Review issues."
+    echo "FAIL Some tests failed. Review issues."
     exit 1
 fi

@@ -7,12 +7,12 @@ project_root="$(cd "$(dirname "$0")" && pwd)"
 cd "$project_root"
 
 if ! command -v kubectl >/dev/null 2>&1; then
-  echo "[✗] kubectl not found in PATH" >&2
+  echo "[FAIL] kubectl not found in PATH" >&2
   exit 1
 fi
 
 if [[ ! -f .env ]]; then
-  echo "[✗] .env file not found at $project_root/.env" >&2
+  echo "[FAIL] .env file not found at $project_root/.env" >&2
   exit 1
 fi
 
@@ -155,4 +155,4 @@ kubectl create secret generic grafana-datasources \
   -n "$NAMESPACE" \
   --dry-run=client -o yaml | kubectl apply -f -
 
-echo "[✓] Secrets and ConfigMaps created in namespace '$NAMESPACE'"
+echo "[OK] Secrets and ConfigMaps created in namespace '$NAMESPACE'"

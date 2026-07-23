@@ -9,7 +9,7 @@ cd "$project_root"
 if ! command_v() { command -v "$1" >/dev/null 2>&1; }; then :; fi
 
 if ! command -v kubectl >/dev/null 2>&1; then
-  echo "[✗] kubectl not found in PATH" >&2
+  echo "[FAIL] kubectl not found in PATH" >&2
   exit 1
 fi
 
@@ -107,4 +107,4 @@ Grafana:            http://${GRAFANA_IP}:30008
 Dashboard API:      http://${DASHBOARD_API_IP}:30010
 EOF
 
-echo "[✓] Deployment complete"
+echo "[OK] Deployment complete"

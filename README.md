@@ -1,6 +1,6 @@
 # Cagridge Data Lakehouse - Texas Gas Stations Analytics Platform
 
-## 🏢 Overview
+## Overview
 
 Cagridge operates 4 gas stations with convenience stores across Texas:
 
@@ -11,7 +11,7 @@ Cagridge operates 4 gas stations with convenience stores across Texas:
 
 This project implements a complete **Modern Data Lakehouse** architecture for analytics, reporting, and data management across all locations.
 
-## 🏗️ Architecture
+## Architecture
 
 ### Technology Stack
 
@@ -32,7 +32,7 @@ This project implements a complete **Modern Data Lakehouse** architecture for an
 
 ![data_lakehouse_architecture_diagram](data_lakehouse_architecture_diagram.png)
 
-## 📋 Prerequisites
+## Prerequisites
 
 - **Kubernetes Cluster** (I recommend Raspberry Pi cluster, kind, Docker Desktop, or Minikube)
 - **kubectl** CLI tool installed
@@ -43,7 +43,7 @@ This project implements a complete **Modern Data Lakehouse** architecture for an
 
 **Note**: This project uses MetalLB for LoadBalancer services. The `deploy.sh` script will automatically install MetalLB v0.13.12 if not already present.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Step 1: Start Kubernetes Cluster
 
@@ -179,7 +179,7 @@ OR set up manual port forwarding for specific services:
 kubectl port-forward -n ${NAMESPACE} svc/dashboard-service 30000:80
 ```
 
-## 🗄️ Database Setup
+## Database Setup
 
 ### Initialize PostgreSQL
 
@@ -212,7 +212,7 @@ Using local psql client (via MetalLB IP from .env)
 psql -h "$POSTGRES_IP" -p 30001 -U "$POSTGRES_USER" -d "$POSTGRES_DB"
 ```
 
-## 📊 MinIO Setup
+## MinIO Setup
 
 ### Initialize MinIO Buckets
 
@@ -239,7 +239,7 @@ mc mb local/backups
 
 Or use the MinIO Console at http://${MINIO_IP}:30009 (IP from .env)
 
-## 🔧 Trino Configuration
+## Trino Configuration
 
 ### Create Iceberg Tables
 
@@ -259,7 +259,7 @@ CREATE TABLE iceberg.cagridge.fuel_sales (
 );
 ```
 
-## 🌊 Airflow DAGs
+## Airflow DAGs
 
 ### Create Sample DAG
 
@@ -294,7 +294,7 @@ dag = DAG(
 # then Define tasks...
 ```
 
-## 📈 Monitoring
+## Monitoring
 
 ### Prometheus Targets
 
@@ -314,7 +314,7 @@ Prometheus automatically scrapes metrics from:
    - Prometheus (metrics)
    - PostgreSQL (data)
 
-## 🔐 Security Configuration
+## Security Configuration
 
 ### Credentials Management
 
@@ -344,7 +344,7 @@ kubectl rollout restart statefulset trino -n ${NAMESPACE}
 tr -dc 'A-Za-z0-9_-' </dev/urandom | head -c 32; echo
 ```
 
-## 🧪 Testing
+## Testing
 
 ### Verify Services
 
@@ -380,7 +380,7 @@ kubectl exec \
     -- curl -sS http://localhost:8080/v1/info
 ```
 
-## 📦 Backup & Restore
+## Backup & Restore
 
 ### Backup PostgreSQL
 
@@ -412,7 +412,7 @@ kubectl exec \
     -- mc mirror local/lakehouse /backup/lakehouse
 ```
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
 ### Pods Not Starting
 
@@ -444,7 +444,7 @@ kubectl get endpoints -n ${NAMESPACE}
 kubectl port-forward -n ${NAMESPACE} svc/postgres-service 30001:5432
 ```
 
-## 🔄 Scaling
+## Scaling
 
 ### Scale Deployments
 
@@ -454,7 +454,7 @@ Scale stateless services e.g., Dashboard. Stateful services (PostgreSQL, MinIO, 
 kubectl scale deployment dashboard --replicas=2 -n ${NAMESPACE}
 ```
 
-## 📝 Development
+## Development
 
 ### Local Development
 
@@ -465,7 +465,7 @@ kubectl cp local-file.txt ${NAMESPACE}/<pod-name>:/remote-path/
 kubectl cp ${NAMESPACE}/<pod-name>:/remote-file.txt ./local-file.txt
 ```
 
-## 🗑️ Cleanup
+## Cleanup
 
 ### Delete All Resources
 
@@ -473,7 +473,7 @@ kubectl cp ${NAMESPACE}/<pod-name>:/remote-file.txt ./local-file.txt
 ./cleanup.sh
 ```
 
-## 📚 Additional Resources
+## Additional Resources
 
 Apache Iceberg Documentation - <https://iceberg.apache.org/>
 Project Nessie Documentation - <https://projectnessie.org/>
@@ -482,14 +482,14 @@ dbt Documentation - <https://docs.getdbt.com/>
 Apache Airflow Documentation - <https://airflow.apache.org/docs/>
 Kubernetes Documentation - <https://kubernetes.io/docs/>
 
-## 👥 Team & Support
+## Team & Support
 
 Cagridge IT Department
 
 - Email: <it@cagridge.com>
 - Support: <support@cagridge.com>
 
-## 📄 License
+## License
 
 Proprietary - Cagridge Gas © 2025
 

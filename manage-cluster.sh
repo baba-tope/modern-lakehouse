@@ -38,7 +38,7 @@ create_cluster() {
   kind create cluster --config "$CONFIG_FILE"
   
   echo ""
-  echo "✓ Cluster created successfully!"
+  echo "OK Cluster created successfully!"
   echo ""
   echo "Next steps:"
   echo "  1. Deploy the lakehouse: ./deploy.sh"
@@ -54,7 +54,7 @@ delete_cluster() {
   fi
   
   kind delete cluster --name "$CLUSTER_NAME"
-  echo "✓ Cluster deleted successfully!"
+  echo "OK Cluster deleted successfully!"
 }
 
 show_status() {

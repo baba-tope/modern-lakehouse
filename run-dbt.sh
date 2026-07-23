@@ -13,7 +13,7 @@ NAMESPACE="${NAMESPACE:-texas-gas-lakehouse}"
 DBT_POD=$(kubectl get pod -n "$NAMESPACE" -l app=dbt-server -o jsonpath='{.items[0].metadata.name}')
 
 if [[ -z "$DBT_POD" ]]; then
-  echo "[✗] dbt pod not found in namespace $NAMESPACE" >&2
+  echo "[FAIL] dbt pod not found in namespace $NAMESPACE" >&2
   exit 1
 fi
 
@@ -39,7 +39,7 @@ if [[ $# -eq 0 ]]; then
   echo "[•] Running dbt run..."
   kubectl exec -n "$NAMESPACE" "$DBT_POD" -- bash -c "cd /dbt && dbt run"
   
-  echo "[✓] dbt run completed successfully"
+  echo "[OK] dbt run completed successfully"
 else
   # Run custom dbt command
   echo "[•] Running: dbt $*"

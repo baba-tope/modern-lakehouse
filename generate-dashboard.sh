@@ -7,7 +7,7 @@ project_root="$(cd "$(dirname "$0")" && pwd)"
 cd "$project_root"
 
 if [[ ! -f .env ]]; then
-  echo "[✗] .env file not found" >&2
+  echo "[FAIL] .env file not found" >&2
   exit 1
 fi
 
@@ -36,5 +36,5 @@ for file in dashboard/index.html dashboard/scripts.js; do
   fi
 done
 
-echo "[✓] Dashboard generated successfully"
+echo "[OK] Dashboard generated successfully"
 echo "    Using localhost:3000X URLs for all services"
